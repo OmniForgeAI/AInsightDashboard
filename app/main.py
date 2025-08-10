@@ -3,27 +3,27 @@ from __future__ import annotations
 # --- Streamlit Cloud import fix ---
 import sys
 from pathlib import Path
-ROOT = Path(__file__).resolve().parents[1]  # repo root
+ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 # -----------------------------------
 
-import os, json
+import os
 import streamlit as st
 import pandas as pd
-from pathlib import Path
 from app.kpis import revenue, orders, aov, top_products, FilterCtx
 from app.insight_engine import generate_insights
 from app.fact_checker import check_insights
 from app.components import kpi_tiles, trend_chart, top_products_bar
 from app.logger import save_run
+from app.upload import upload_data_widget
 
 BASE = Path(__file__).resolve().parent.parent
 PROC = BASE / "data" / "processed" / "orders.parquet"
 SAMP = BASE / "data" / "samples" / "sample_orders.parquet"
 
 @st.cache_data
-def load_data() -> pd.DataFrame:
+def load_sample_or_processed() -> pd.DataFrame:
     path = PROC if PROC.exists() else SAMP
     df = pd.read_parquet(path)
     df["order_date"] = pd.to_datetime(df["order_date"])
@@ -85,14 +85,25 @@ def main():
     st.set_page_config(page_title="AI KPI Dashboard (with Fact Checker)", layout="wide")
     st.title("AI KPI Dashboard (with Fact Checker)")
 
-    df = load_data()
+    with st.sidebar:
+        st.header("Data source")
+        src = st.radio("Choose data", ["Sample (built-in)", "Upload CSV/XLSX"], index=0)
+
+    if src == "Upload CSV/XLSX":
+        df = upload_data_widget()
+        if df is None or df.empty:
+            st.info("Upload a file and click **Use this data** in the sidebar to begin.")
+            st.stop()
+    else:
+        df = load_sample_or_processed()
+
     min_d, max_d = date_bounds(df)
 
     with st.sidebar:
         st.header("Filters")
         sd, ed = st.date_input("Date range", value=(min_d, max_d), min_value=min_d, max_value=max_d)
-        category = st.selectbox("Category", ["(All)"] + sorted(df["category"].unique().tolist()))
-        store = st.selectbox("Store", ["(All)"] + sorted(df["store"].unique().tolist()))
+        category = st.selectbox("Category", ["(All)"] + sorted(df["category"].astype(str).unique().tolist()))
+        store = st.selectbox("Store", ["(All)"] + sorted(df["store"].astype(str).unique().tolist()))
         compare_prev = st.checkbox("Compare with previous period", value=True)
 
         st.header("LLM & Logging")
@@ -109,7 +120,7 @@ def main():
     st.divider()
     mask = (df["order_date"] >= start) & (df["order_date"] <= end)
     if fctx.category: mask &= df["category"] == fctx.category
-    if fctx.store: mask &= df["store"] == fctx.store
+    if fctx.store:    mask &= df["store"] == fctx.store
     filtered = df[mask]
     trend_chart(filtered, freq="M")
     top_products_bar(filtered, n=10)
@@ -119,10 +130,12 @@ def main():
     insights, checked, rows = render_insights(df, payload)
 
     if log_run:
-        settings = {"model": model_name, "temperature": float(temperature), "compare_prev": compare_prev}
+        settings = {"model": model_name, "temperature": float(temperature),
+                    "compare_prev": compare_prev, "source": src}
         path = save_run(payload, insights, rows, settings)
         st.caption(f"Run logged to: {path}")
 
-    st.caption("Tip: set USE_OPENAI=1 and OPENAI_API_KEY to use a hosted model. The default runs offline.")
+    st.caption("Tip: Upload CSV/XLSX in the sidebar to analyze your own data. No file is stored on disk.")
+
 if __name__ == "__main__":
     main()
