@@ -1,0 +1,19 @@
+{
+  "type": "array",
+  "items": {
+    "type": "object",
+    "required": ["claim_id","metric","time_granularity","period","filter","statement","value_reported","comparison"],
+    "properties": {
+      "claim_id": {"type":"string"},
+      "metric": {"enum":["revenue","orders","aov","return_rate","other"]},
+      "time_granularity": {"enum":["day","week","month","quarter"]},
+      "period": {"type":"object","required":["start","end"],"properties":{"start":{"type":"string"},"end":{"type":"string"}}},
+      "filter": {"type":"object"},
+      "statement": {"type":"string"},
+      "value_reported": {"type":"number"},
+      "comparison": {
+        "type":"object","required":["vs","delta","delta_pct"],
+        "properties":{"vs":{"enum":["previous_period","previous_year","none"]},"delta":{"type":"number"},"delta_pct":{"type":"number"}}}
+    }
+  }
+}
