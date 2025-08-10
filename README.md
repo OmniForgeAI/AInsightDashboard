@@ -115,3 +115,8 @@ This build runs the Executive summary using an offline heuristic (no external AP
 **Date & time**: based on the dataset’s `order_date` values (no timezone shifts applied).  
 **Currency**: Display-only symbol chosen in the sidebar; data is not FX-converted.  
 **Fiscal calendar**: Quarterly report can use a fiscal year that starts in any month (e.g., April → ‘Q-MAR’ year-end).
+
+## Changelog
+- **v1.1** — YoY, mix-shift, revenue bridge, outlier badge, quarterly (fiscal-aware), last-updated, data dictionary
+- **v1.0** — Upload CSV/XLSX, fact-checked insights with audit CSV, offline executive summary
+
