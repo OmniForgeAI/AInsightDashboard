@@ -26,3 +26,11 @@ See **artifacts/eval_summary.csv** for VERIFIED% across runs.
 
 ## Screenshot
 ![Dashboard](artifacts/dashboard_realdata.png)
+
+## Executive summary (offline by default)
+
+This build runs the Executive summary using an offline heuristic (no external API calls).
+
+**Enable a hosted model later (optional):**
+
+1) Install the client:
