@@ -17,6 +17,7 @@ from app.fact_checker import check_insights
 from app.components import kpi_tiles, trend_chart, top_products_bar
 from app.logger import save_run
 from app.upload import upload_data_widget
+from app.explainer import explain
 
 BASE = Path(__file__).resolve().parent.parent
 PROC = BASE / "data" / "processed" / "orders.parquet"
@@ -89,6 +90,7 @@ def main():
         st.header("Data source")
         src = st.radio("Choose data", ["Sample (built-in)", "Upload CSV/XLSX"], index=0)
 
+    # choose dataset
     if src == "Upload CSV/XLSX":
         df = upload_data_widget()
         if df is None or df.empty:
@@ -107,8 +109,9 @@ def main():
         compare_prev = st.checkbox("Compare with previous period", value=True)
 
         st.header("LLM & Logging")
-        model_name = st.text_input("Model name", os.getenv("MODEL_NAME", "offline-heuristic"))
+        model_name = st.text_input("Model name", os.getenv("MODEL_NAME", "gpt-4o-mini"))
         temperature = st.slider("Temperature", 0.0, 1.0, float(os.getenv("TEMPERATURE", "0.2")), 0.05)
+        want_explain = st.checkbox("Explain insights with model", value=True)
         log_run = st.checkbox("Log runs to artifacts/", value=True)
 
     start = pd.to_datetime(sd); end = pd.to_datetime(ed)
@@ -129,13 +132,19 @@ def main():
     payload = build_prompt_payload(df, start, end, fctx, compare_prev=compare_prev)
     insights, checked, rows = render_insights(df, payload)
 
+    # NEW: Executive summary (LLM or fallback)
+    if want_explain:
+        st.subheader("Executive summary")
+        txt = explain(rows, kpis, model=model_name, temperature=float(temperature))
+        st.write(txt)
+
     if log_run:
         settings = {"model": model_name, "temperature": float(temperature),
                     "compare_prev": compare_prev, "source": src}
         path = save_run(payload, insights, rows, settings)
         st.caption(f"Run logged to: {path}")
 
-    st.caption("Tip: Upload CSV/XLSX in the sidebar to analyze your own data. No file is stored on disk.")
-
+    st.caption("Tip: set USE_OPENAI=1 and OPENAI_API_KEY to use a hosted model. Otherwise I use a simple offline summary.")
+    st.caption("Upload CSV/XLSX in the sidebar to analyze your own data.")
 if __name__ == "__main__":
     main()
