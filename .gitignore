@@ -13,3 +13,4 @@ data/raw/*
 !artifacts/runs/**/meta.json
 !artifacts/runs/**/payload.json
 !artifacts/runs/**/insights_raw.json
+!data/samples/sample_orders.parquet
