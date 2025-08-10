@@ -19,3 +19,10 @@ This launches Streamlit on a local URL. The default dataset is a small synthetic
 ## Data
 This app uses the **Online Retail II** dataset (UCI ML Repository, CC BY 4.0).  
 Raw file is kept locally (`data/raw/`); processed Parquet lives in `data/processed/`.
+
+## Evaluation
+We log each run (payload, model settings, raw JSON output, and checks) and summarize results.
+See **artifacts/eval_summary.csv** for VERIFIED% across runs.
+
+## Screenshot
+![Dashboard](artifacts/dashboard_realdata.png)
