@@ -8,3 +8,4 @@ artifacts/*
 data/processed/*
 data/samples/*
 !artifacts/eval_summary.csv
+data/raw/*
