@@ -13,6 +13,45 @@
   <img src="artifacts/dashboard_realdata.png" alt="Dashboard screenshot" width="900"/>
 </p>
 
+## Feature overview (current)
+
+- **KPI tiles**: Revenue, Orders, AOV with filters for **date / category / store**.
+- **Comparisons**: 
+  - Vs **previous period** (Δ and %Δ)
+  - **YoY** (same dates last year)
+- **Quarterly report (last 8 quarters)**:
+  - Revenue, Orders, AOV + **QoQ%** and **YoY%**
+  - **Fiscal-aware**: choose fiscal year start month (e.g., April → Q-MAR)
+  - **Download CSV**
+- **Mix-shift analysis**:
+  - Category & Store tables with **share_cur**, **share_prev**, **Δ share**
+- **Revenue bridge (price vs volume)**:
+  - Decomposes ΔRevenue into **Volume**, **Price**, and **Interaction**
+- **Outlier badge**:
+  - Daily revenue **z-score** flag (|z| ≥ 2)
+- **Executive summary**:
+  - Offline by default; includes **drivers** (top contributors & movers) and **next actions**
+  - Optional hosted model (OpenAI) if env vars are set
+- **Fact-checked insights**:
+  - Every claim badged (**✅ VERIFIED / ⚠️ APPROX / ❌ MISMATCH**) with a downloadable **audit CSV**
+- **Upload your own data**:
+  - CSV/XLSX **column mapping** UI, light cleaning, no disk writes
+- **Run logging**:
+  - Saves payload, raw outputs, and checks to `artifacts/runs/`
+- **Conventions**:
+  - **Last updated** stamp, configurable **currency symbol**, **Data Dictionary** in README
+
+> Live demo: (add your Streamlit URL here if you want it in the README as well)
+
+## How to enable hosted model (optional)
+
+```bash
+pip install openai
+export USE_OPENAI=1
+export OPENAI_API_KEY=sk-...     # your key
+export MODEL_NAME=gpt-4o-mini
+
+
 ## Why this project
 - **Real analytics**: revenue, orders, AOV, top products, filters (date/category/store).
 - **Trust**: every insight is auto-checked against the data (✅/⚠️/❌) with an audit CSV.
