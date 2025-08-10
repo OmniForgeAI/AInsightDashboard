@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 # --- Streamlit Cloud import fix ---
 import sys
 from pathlib import Path
@@ -6,7 +8,6 @@ if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 # -----------------------------------
 
-from __future__ import annotations
 import os, json
 import streamlit as st
 import pandas as pd
