@@ -23,3 +23,4 @@ artifacts/*
 !artifacts/dashboard_realdata.png
 !artifacts/runs/**
 !/.streamlit/config.toml
+!/.streamlit/config.toml
