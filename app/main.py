@@ -168,6 +168,31 @@ def main():
     top_products_bar(filtered, n=10)
     st.divider()
 
+    # NEW — Export current view (CSV)
+    st.subheader("Export")
+    export_cols_pref = ["order_date","category","store","product","quantity","unit_price","revenue"]
+    export_cols = [c for c in export_cols_pref if c in filtered.columns]
+    try:
+        csv_bytes = (
+            filtered[export_cols]
+            .sort_values("order_date" if "order_date" in export_cols else export_cols[0])
+            .to_csv(index=False)
+            .encode("utf-8")
+        )
+    except Exception:
+        csv_bytes = filtered.to_csv(index=False).encode("utf-8")
+
+    st.download_button(
+        "Download current view (CSV)",
+        data=csv_bytes,
+        file_name="current_view.csv",
+        mime="text/csv",
+        use_container_width=True,
+    )
+    with st.expander("Preview CSV / quick copy"):
+        # st.code shows a copy-to-clipboard icon in the UI
+        st.code(csv_bytes.decode("utf-8")[:80_000], language="text")
+
     # Comparisons
     if compare_prev or compare_yoy:
         st.subheader("Comparisons")
