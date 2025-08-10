@@ -19,7 +19,8 @@ from app.logger import save_run
 from app.upload import upload_data_widget
 from app.explainer import explain
 from app.analytics import (
-    apply_filters, daily_revenue, yoy_period, mix_table, price_volume_bridge, zscore_last_day
+    apply_filters, daily_revenue, yoy_period, mix_table, price_volume_bridge, zscore_last_day,
+    quarterly_report
 )
 
 BASE = Path(__file__).resolve().parent.parent
@@ -92,7 +93,7 @@ def main():
     st.set_page_config(page_title="AI KPI Dashboard (with Fact Checker)", layout="wide")
     st.title("AI KPI Dashboard (with Fact Checker)")
 
-    # Load data source
+    # Data source
     with st.sidebar:
         st.header("Data source")
         src = st.radio("Choose data", ["Sample (built-in)", "Upload CSV/XLSX"], index=0)
@@ -119,6 +120,7 @@ def main():
         mix_dim = st.selectbox("Mix dimension", ["category","store"])
         show_bridge = st.checkbox("Show price vs volume bridge", value=True)
         show_outliers = st.checkbox("Show outlier badge (z-score)", value=True)
+        show_quarterly = st.checkbox("Show quarterly report", value=True)
 
         st.header("LLM & Logging")
         model_name = st.text_input("Model name", os.getenv("MODEL_NAME", "offline-heuristic"))
@@ -126,7 +128,7 @@ def main():
         want_explain = st.checkbox("Explain insights (Executive summary)", value=True)
         log_run = st.checkbox("Log runs to artifacts/", value=True)
 
-    # Prepare contexts
+    # Context
     start = pd.to_datetime(sd); end = pd.to_datetime(ed)
     fctx = FilterCtx(category=None if category == "(All)" else category,
                      store=None if store == "(All)" else store)
@@ -134,7 +136,7 @@ def main():
     # KPIs
     kpis = kpi_block(df, start, end, fctx)
 
-    # Current and comparison slices
+    # Slices
     filtered = apply_filters(df, start, end, fctx)
 
     prev_filtered = None
@@ -149,13 +151,13 @@ def main():
         y_start, y_end = yoy_period(start, end)
         yoy_filtered = apply_filters(df, y_start, y_end, fctx)
 
-    # Base charts
+    # Charts
     st.divider()
     trend_chart(filtered, freq="M")
     top_products_bar(filtered, n=10)
     st.divider()
 
-    # Comparisons: prior period and YoY
+    # Comparisons
     if compare_prev or compare_yoy:
         st.subheader("Comparisons")
     if compare_prev and prev_filtered is not None and not prev_filtered.empty:
@@ -169,7 +171,7 @@ def main():
         pct = (delta / yoy_rev) if yoy_rev else 0.0
         st.markdown(f"**YoY:** Revenue Δ ${delta:,.0f}  ({pct*100:,.1f}%)")
 
-    # Mix-shift tables
+    # Mix-shift
     if show_mix:
         st.subheader("Mix shift")
         c1, c2 = st.columns(2)
@@ -184,10 +186,7 @@ def main():
                     mt_disp[col] = mt_disp[col].apply(fmt_pct)
                 st.dataframe(mt_disp, use_container_width=True, height=320)
         with c2:
-            if mix_dim == "category":
-                alt_dim = "store"
-            else:
-                alt_dim = "category"
+            alt_dim = "store" if mix_dim == "category" else "category"
             st.caption(f"Top {alt_dim} by share (current vs prior)")
             mt2 = mix_table(filtered, prev_filtered, by=alt_dim, top_n=10)
             if mt2.empty:
@@ -208,7 +207,7 @@ def main():
             st.dataframe(bridge, use_container_width=True, height=240)
             st.bar_chart(bridge.set_index("component")["value"])
 
-    # Outlier badge (z-score on daily revenue)
+    # Outlier badge
     if show_outliers:
         s = daily_revenue(filtered)
         z = zscore_last_day(s)
@@ -218,7 +217,22 @@ def main():
         else:
             st.caption("No daily revenue outliers (|z| < 2).")
 
-    # Insights + Executive summary
+    # Quarterly report (NEW)
+    if show_quarterly:
+        st.subheader("Quarterly report (last 8 quarters)")
+        qr = quarterly_report(df, fctx, n_quarters=8)
+        if qr.empty:
+            st.info("Not enough data for a quarterly report.")
+        else:
+            qrf = qr.copy()
+            for col in ["qoq_pct","yoy_pct"]:
+                qrf[col] = qrf[col].apply(fmt_pct)
+            st.dataframe(qrf, use_container_width=True, height=320)
+            st.download_button("Download quarterly report (CSV)",
+                               data=qr.to_csv(index=False).encode("utf-8"),
+                               file_name="quarterly_report.csv", mime="text/csv")
+
+    # Insights + summary
     payload = build_prompt_payload(df, start, end, fctx, compare_prev=compare_prev)
     insights, checked, rows = render_insights(df, payload)
 
@@ -230,7 +244,7 @@ def main():
     if log_run:
         settings = {"model": model_name, "temperature": float(temperature),
                     "compare_prev": compare_prev, "compare_yoy": compare_yoy,
-                    "mix_dim": mix_dim, "source": src}
+                    "mix_dim": mix_dim, "show_quarterly": show_quarterly, "source": src}
         path = save_run(payload, insights, rows, settings)
         st.caption(f"Run logged to: {path}")
 
