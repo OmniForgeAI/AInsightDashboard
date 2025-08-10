@@ -1,5 +1,7 @@
 # AI KPI Dashboard — Fact-Checked LLM Insights (Offline by default)
 
+[![CI](https://github.com/OmniForgeAI/AInsightDashboard/actions/workflows/ci.yml/badge.svg)](https://github.com/OmniForgeAI/AInsightDashboard/actions/workflows/ci.yml)
+
 ![Python 3.11+](https://img.shields.io/badge/Python-3.11%2B-blue)
 ![Streamlit](https://img.shields.io/badge/Streamlit-1.x-FF4B4B?logo=streamlit&logoColor=white)
 ![License: MIT](https://img.shields.io/badge/License-MIT-green)
