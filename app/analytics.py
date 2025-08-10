@@ -1,5 +1,6 @@
 from __future__ import annotations
 from typing import Optional
+import calendar
 import pandas as pd
 from app.kpis import FilterCtx
 
@@ -80,9 +81,16 @@ def _quarter_str(p: pd.Period) -> str:
     s = str(p)
     return s.replace("Q", "-Q")
 
-def quarterly_report(df: pd.DataFrame, fctx: FilterCtx, n_quarters: int = 8) -> pd.DataFrame:
-    """Quarterly revenue, orders (unique order_id), AOV, with QoQ% and YoY% (if available).
-       Uses ALL available dates, filtered by category/store."""
+def _fiscal_alias_from_start(start_month: int) -> str:
+    # start_month: 1..12 (Jan..Dec). Pandas uses quarter alias by *end* month.
+    end_month = 12 if start_month == 1 else start_month - 1
+    end_abbr = calendar.month_abbr[end_month].upper()
+    return f"Q-{end_abbr}"
+
+def quarterly_report(
+    df: pd.DataFrame, fctx: FilterCtx, n_quarters: int = 8, fiscal_start_month: int = 1
+) -> pd.DataFrame:
+    """Quarterly revenue, orders (unique order_id), AOV, with QoQ% and YoY% (fiscal-aware)."""
     if df.empty:
         return pd.DataFrame(columns=["quarter","revenue","orders","aov","qoq_pct","yoy_pct"])
 
@@ -93,7 +101,9 @@ def quarterly_report(df: pd.DataFrame, fctx: FilterCtx, n_quarters: int = 8) -> 
         return pd.DataFrame(columns=["quarter","revenue","orders","aov","qoq_pct","yoy_pct"])
 
     dff = dff.copy()
-    dff["qtr"] = dff["order_date"].dt.to_period("Q")
+    # Fiscal quarter alias (e.g., 'Q-MAR' for FY starting April)
+    alias = _fiscal_alias_from_start(int(fiscal_start_month))
+    dff["qtr"] = dff["order_date"].dt.to_period(alias)
 
     # aggregates
     rev = dff.groupby("qtr")["revenue"].sum()
@@ -101,13 +111,11 @@ def quarterly_report(df: pd.DataFrame, fctx: FilterCtx, n_quarters: int = 8) -> 
     aov = rev / ords.replace({0: pd.NA})
 
     out = pd.DataFrame({"revenue": rev, "orders": ords, "aov": aov})
-
     # changes
-    out["qoq_pct"] = out["revenue"].pct_change()         # vs previous quarter
-    out["yoy_pct"] = out["revenue"].pct_change(4)        # vs same quarter last year
+    out["qoq_pct"] = out["revenue"].pct_change()      # vs previous quarter (fiscal-aware)
+    out["yoy_pct"] = out["revenue"].pct_change(4)     # vs same fiscal quarter last year
 
     out = out.reset_index().rename(columns={"qtr": "quarter"})
     out["quarter"] = out["quarter"].apply(_quarter_str)
-    # last N quarters
     out = out.sort_values("quarter").tail(n_quarters).reset_index(drop=True)
     return out

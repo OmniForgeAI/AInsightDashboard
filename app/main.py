@@ -8,7 +8,7 @@ if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 # -----------------------------------
 
-import os
+import os, calendar
 import streamlit as st
 import pandas as pd
 from app.kpis import revenue, orders, aov, top_products, FilterCtx
@@ -122,6 +122,13 @@ def main():
         show_outliers = st.checkbox("Show outlier badge (z-score)", value=True)
         show_quarterly = st.checkbox("Show quarterly report", value=True)
 
+        st.header("Conventions")
+        fiscal_start_month = st.selectbox(
+            "Fiscal year starts in", list(range(1,13)),
+            index=0, format_func=lambda m: calendar.month_name[m]
+        )
+        currency_symbol = st.text_input("Currency symbol", value="$")
+
         st.header("LLM & Logging")
         model_name = st.text_input("Model name", os.getenv("MODEL_NAME", "offline-heuristic"))
         temperature = st.slider("Temperature", 0.0, 1.0, float(os.getenv("TEMPERATURE", "0.2")), 0.05)
@@ -135,6 +142,10 @@ def main():
 
     # KPIs
     kpis = kpi_block(df, start, end, fctx)
+
+    # “Last updated” + conventions
+    last_dt = pd.to_datetime(df["order_date"].max()).date() if not df.empty else None
+    st.caption(f"Data last updated: {last_dt} • Currency: {currency_symbol} • Fiscal start: {calendar.month_name[fiscal_start_month]}")
 
     # Slices
     filtered = apply_filters(df, start, end, fctx)
@@ -164,12 +175,12 @@ def main():
         cur_rev, prev_rev = float(filtered["revenue"].sum()), float(prev_filtered["revenue"].sum())
         delta = cur_rev - prev_rev
         pct = (delta / prev_rev) if prev_rev else 0.0
-        st.markdown(f"**Vs previous period:** Revenue Δ ${delta:,.0f}  ({pct*100:,.1f}%)")
+        st.markdown(f"**Vs previous period:** Revenue Δ {currency_symbol}{delta:,.0f}  ({pct*100:,.1f}%)")
     if compare_yoy and yoy_filtered is not None and not yoy_filtered.empty:
         cur_rev, yoy_rev = float(filtered["revenue"].sum()), float(yoy_filtered["revenue"].sum())
         delta = cur_rev - yoy_rev
         pct = (delta / yoy_rev) if yoy_rev else 0.0
-        st.markdown(f"**YoY:** Revenue Δ ${delta:,.0f}  ({pct*100:,.1f}%)")
+        st.markdown(f"**YoY:** Revenue Δ {currency_symbol}{delta:,.0f}  ({pct*100:,.1f}%)")
 
     # Mix-shift
     if show_mix:
@@ -217,10 +228,10 @@ def main():
         else:
             st.caption("No daily revenue outliers (|z| < 2).")
 
-    # Quarterly report (NEW)
+    # Quarterly report (fiscal-aware)
     if show_quarterly:
         st.subheader("Quarterly report (last 8 quarters)")
-        qr = quarterly_report(df, fctx, n_quarters=8)
+        qr = quarterly_report(df, fctx, n_quarters=8, fiscal_start_month=int(fiscal_start_month))
         if qr.empty:
             st.info("Not enough data for a quarterly report.")
         else:
@@ -244,7 +255,10 @@ def main():
     if log_run:
         settings = {"model": model_name, "temperature": float(temperature),
                     "compare_prev": compare_prev, "compare_yoy": compare_yoy,
-                    "mix_dim": mix_dim, "show_quarterly": show_quarterly, "source": src}
+                    "mix_dim": mix_dim, "show_quarterly": show_quarterly,
+                    "fiscal_start_month": int(fiscal_start_month),
+                    "currency_symbol": currency_symbol,
+                    "source": src}
         path = save_run(payload, insights, rows, settings)
         st.caption(f"Run logged to: {path}")
 
