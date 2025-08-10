@@ -22,3 +22,4 @@ artifacts/*
 !artifacts/eval_summary.csv
 !artifacts/dashboard_realdata.png
 !artifacts/runs/**
+!/.streamlit/config.toml
