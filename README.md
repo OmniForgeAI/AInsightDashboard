@@ -1,6 +1,6 @@
 # AI-Powered Business Insights Dashboard (with Fact Checker)
 
-Small, portfolio-ready Streamlit app that analyzes a retail-style dataset, shows KPIs, and generates **AI insights** that are **fact-checked** against the data.
+Small, Streamlit app that analyzes a retail-style dataset, shows KPIs, and generates **AI insights** that are **fact-checked** against the data.
 
 ## Quick Start
 
