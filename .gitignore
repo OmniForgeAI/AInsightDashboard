@@ -1,16 +1,24 @@
-.venv/
+# Python
 __pycache__/
-*.py[cod]
-*.log
+*.pyc
+*.pyo
+*.pyd
+
+# Virtualenv
+.venv/
+env/
+venv/
+
+# Streamlit cache
 .streamlit/
-.cache/
-artifacts/*
-data/processed/*
-data/samples/*
-!artifacts/eval_summary.csv
+
+# Data
 data/raw/*
-!artifacts/runs/**/checked.csv
-!artifacts/runs/**/meta.json
-!artifacts/runs/**/payload.json
-!artifacts/runs/**/insights_raw.json
 !data/samples/sample_orders.parquet
+
+# Artifacts: ignore all by default…
+artifacts/*
+# …but keep these in the repo:
+!artifacts/eval_summary.csv
+!artifacts/dashboard_realdata.png
+!artifacts/runs/**
