@@ -96,9 +96,6 @@ Raw file is kept locally (`data/raw/`); processed Parquet lives in `data/process
 We log each run (payload, model settings, raw JSON output, and checks) and summarize results.
 See **artifacts/eval_summary.csv** for VERIFIED% across runs.
 
-## Screenshot
-![Dashboard](artifacts/dashboard_realdata.png)
-
 ## Executive summary (offline by default)
 
 This build runs the Executive summary using an offline heuristic (no external API calls).
