@@ -41,7 +41,7 @@
 - **Conventions**:
   - **Last updated** stamp, configurable **currency symbol**, **Data Dictionary** in README
 
-> Live demo: (add your Streamlit URL here if you want it in the README as well)
+> Live demo: (https://ainsightdashboard-wg34hlm7rzad4ndyytjgy9.streamlit.app/)
 
 ## How to enable hosted model (optional)
 
