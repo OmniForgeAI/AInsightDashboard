@@ -9,3 +9,7 @@ data/processed/*
 data/samples/*
 !artifacts/eval_summary.csv
 data/raw/*
+!artifacts/runs/**/checked.csv
+!artifacts/runs/**/meta.json
+!artifacts/runs/**/payload.json
+!artifacts/runs/**/insights_raw.json
