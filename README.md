@@ -67,3 +67,13 @@ This build runs the Executive summary using an offline heuristic (no external AP
 **Enable a hosted model later (optional):**
 
 1) Install the client:
+
+## Data Dictionary & Conventions
+
+**Orders**: count of unique `order_id` in the selected period/filters.  
+**Revenue**: sum of `quantity * unit_price` (gross; returns with negative qty/price are filtered out by the loader).  
+**AOV (Average Order Value)**: `Revenue / Orders`.
+
+**Date & time**: based on the dataset’s `order_date` values (no timezone shifts applied).  
+**Currency**: Display-only symbol chosen in the sidebar; data is not FX-converted.  
+**Fiscal calendar**: Quarterly report can use a fiscal year that starts in any month (e.g., April → ‘Q-MAR’ year-end).
