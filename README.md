@@ -120,3 +120,12 @@ This build runs the Executive summary using an offline heuristic (no external AP
 - **v1.1** — YoY, mix-shift, revenue bridge, outlier badge, quarterly (fiscal-aware), last-updated, data dictionary
 - **v1.0** — Upload CSV/XLSX, fact-checked insights with audit CSV, offline executive summary
 
+
+## What's new
+- **Export**: Download current filtered view as CSV (+ copy-friendly preview).
+- **Auto-open**: Streamlit opens your browser automatically (headless = false).
+- **Quarterly (fiscal-aware)**: QoQ & YoY with custom fiscal year start month.
+- **Last updated & currency**: Shown under KPIs.
+- **Mix shift & revenue bridge**: Segment shares and price/volume decomposition.
+- **Outlier badge**: Daily revenue z-score flag.
+- **CI & sample CSV**: GitHub Actions + quick-upload sample.
