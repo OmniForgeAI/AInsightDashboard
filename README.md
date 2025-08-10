@@ -15,3 +15,7 @@ This launches Streamlit on a local URL. The default dataset is a small synthetic
 ## Notes
 - The default LLM adapter ships with an offline heuristic so the app works without keys.
 - To use a hosted model, set env `USE_OPENAI=1` and `OPENAI_API_KEY` (adapter stub included).
+
+## Data
+This app uses the **Online Retail II** dataset (UCI ML Repository, CC BY 4.0).  
+Raw file is kept locally (`data/raw/`); processed Parquet lives in `data/processed/`.
