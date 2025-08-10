@@ -1,0 +1,17 @@
+# AI-Powered Business Insights Dashboard (with Fact Checker)
+
+Small, portfolio-ready Streamlit app that analyzes a retail-style dataset, shows KPIs, and generates **AI insights** that are **fact-checked** against the data.
+
+## Quick Start
+
+```bash
+make setup
+make data
+make run
+```
+
+This launches Streamlit on a local URL. The default dataset is a small synthetic sample generated locally (no internet required).
+
+## Notes
+- The default LLM adapter ships with an offline heuristic so the app works without keys.
+- To use a hosted model, set env `USE_OPENAI=1` and `OPENAI_API_KEY` (adapter stub included).

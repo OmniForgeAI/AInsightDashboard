@@ -1,0 +1,41 @@
+{
+  "suite_name": "sample_kpi_suite",
+  "expectations": [
+    {
+      "type": "expect_column_to_exist",
+      "kwargs": {
+        "column": "order_id"
+      }
+    },
+    {
+      "type": "expect_column_to_exist",
+      "kwargs": {
+        "column": "order_date"
+      }
+    },
+    {
+      "type": "expect_column_to_exist",
+      "kwargs": {
+        "column": "product"
+      }
+    },
+    {
+      "type": "expect_column_to_exist",
+      "kwargs": {
+        "column": "category"
+      }
+    },
+    {
+      "type": "expect_column_to_exist",
+      "kwargs": {
+        "column": "quantity"
+      }
+    },
+    {
+      "type": "expect_column_to_exist",
+      "kwargs": {
+        "column": "unit_price"
+      }
+    }
+  ]
+}
