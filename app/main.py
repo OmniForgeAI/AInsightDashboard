@@ -109,18 +109,20 @@ def main():
         compare_prev = st.checkbox("Compare with previous period", value=True)
 
         st.header("LLM & Logging")
-        model_name = st.text_input("Model name", os.getenv("MODEL_NAME", "gpt-4o-mini"))
+        model_name = st.text_input("Model name", os.getenv("MODEL_NAME", "offline-heuristic"))
         temperature = st.slider("Temperature", 0.0, 1.0, float(os.getenv("TEMPERATURE", "0.2")), 0.05)
-        want_explain = st.checkbox("Explain insights with model", value=True)
+        want_explain = st.checkbox("Explain insights (Executive summary)", value=True)
         log_run = st.checkbox("Log runs to artifacts/", value=True)
 
     start = pd.to_datetime(sd); end = pd.to_datetime(ed)
     fctx = FilterCtx(category=None if category == "(All)" else category,
                      store=None if store == "(All)" else store)
 
+    # KPIs + base charts
     kpis = kpi_block(df, start, end, fctx)
-
     st.divider()
+
+    # Current filtered slice
     mask = (df["order_date"] >= start) & (df["order_date"] <= end)
     if fctx.category: mask &= df["category"] == fctx.category
     if fctx.store:    mask &= df["store"] == fctx.store
@@ -129,14 +131,25 @@ def main():
     top_products_bar(filtered, n=10)
     st.divider()
 
+    # Previous filtered slice (for drivers/movers)
+    prev_filtered = None
+    if compare_prev:
+        period_len = (end - start).days + 1
+        prev_start = start - pd.Timedelta(days=period_len)
+        prev_end = start - pd.Timedelta(days=1)
+        mask_prev = (df["order_date"] >= prev_start) & (df["order_date"] <= prev_end)
+        if fctx.category: mask_prev &= df["category"] == fctx.category
+        if fctx.store:    mask_prev &= df["store"] == fctx.store
+        prev_filtered = df[mask_prev]
+
+    # Insights + Executive summary
     payload = build_prompt_payload(df, start, end, fctx, compare_prev=compare_prev)
     insights, checked, rows = render_insights(df, payload)
 
-    # NEW: Executive summary (LLM or fallback)
     if want_explain:
-        st.subheader("Executive summary")
-        txt = explain(rows, kpis, model=model_name, temperature=float(temperature))
-        st.write(txt)
+        txt = explain(rows, kpis, df_current=filtered, df_prev=prev_filtered,
+                      model=model_name, temperature=float(temperature))
+        st.markdown(txt)
 
     if log_run:
         settings = {"model": model_name, "temperature": float(temperature),
@@ -144,7 +157,7 @@ def main():
         path = save_run(payload, insights, rows, settings)
         st.caption(f"Run logged to: {path}")
 
-    st.caption("Tip: set USE_OPENAI=1 and OPENAI_API_KEY to use a hosted model. Otherwise I use a simple offline summary.")
+    st.caption("Offline by default; set USE_OPENAI=1 + OPENAI_API_KEY to enable a hosted model.")
     st.caption("Upload CSV/XLSX in the sidebar to analyze your own data.")
 if __name__ == "__main__":
     main()
