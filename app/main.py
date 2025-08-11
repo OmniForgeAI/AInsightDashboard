@@ -82,14 +82,52 @@ def render_insights(df: pd.DataFrame, payload: dict):
         })
     if rows:
         st.download_button("Download insight audit log (CSV)",
-                           data=pd.DataFrame(rows).to_csv(index=False).encode("utf-8"),
-                           file_name="insight_audit_log.csv", mime="text/csv")
+                        data=pd.DataFrame(rows).to_csv(index=False).encode("utf-8"),
+                        file_name="insight_audit_log.csv", mime="text/csv")
     return insights, checked, rows
 
 def fmt_pct(x):
     return f"{x*100:,.1f}%" if pd.notna(x) else "-"
 
+
+# ----------- Safe quarterly report wrapper -----------
+
+
+# --- compatibility alias for older call site ---
+
+
+
+
+# ----------- Safe quarterly report wrapper -----------
+
+
+# --- compatibility alias for older call site ---
+
+
+
+
+# ----------- Safe quarterly report wrapper -----------
+def _render_quarterly_report_safe(df, fctx, fiscal_start_month):
+    import streamlit as st
+    try:
+        fiscal_start = int(fiscal_start_month) if fiscal_start_month else 1
+        qr = quarterly_report(df, fctx, n_quarters=8, fiscal_start_month=fiscal_start)
+        return qr
+    except Exception as e:
+        st.subheader("Quarterly report (last 8 quarters)")
+        st.info("Quarterly data unavailable – please check your inputs or dataset.")
+        st.caption(f"(Debug info: {type(e).__name__} — {e})")
+        return None
+
+# --- compatibility alias for older call site ---
+def render_quarterly_report_safe(df, fctx, fiscal_start_month):
+    return _render_quarterly_report_safe(df, fctx, fiscal_start_month)
+
+
 def main():
+    qr = None  # Ensure qr is always defined
+
+    qr = None  # Ensure qr is always defined
     st.set_page_config(page_title="AI KPI Dashboard (with Fact Checker)", layout="wide")
     st.title("AI KPI Dashboard (with Fact Checker)")
 
@@ -138,7 +176,7 @@ def main():
     # Context
     start = pd.to_datetime(sd); end = pd.to_datetime(ed)
     fctx = FilterCtx(category=None if category == "(All)" else category,
-                     store=None if store == "(All)" else store)
+                    store=None if store == "(All)" else store)
 
     # KPIs
     kpis = kpi_block(df, start, end, fctx)
@@ -256,8 +294,8 @@ def main():
     # Quarterly report (fiscal-aware)
     if show_quarterly:
         st.subheader("Quarterly report (last 8 quarters)")
-        qr = quarterly_report(df, fctx, n_quarters=8, fiscal_start_month=int(fiscal_start_month))
-        if qr.empty:
+        _render_quarterly_report_safe(df, fctx, fiscal_start_month)
+        if (qr is None) or (qr.empty):
             st.info("Not enough data for a quarterly report.")
         else:
             qrf = qr.copy()
@@ -265,8 +303,8 @@ def main():
                 qrf[col] = qrf[col].apply(fmt_pct)
             st.dataframe(qrf, use_container_width=True, height=320)
             st.download_button("Download quarterly report (CSV)",
-                               data=qr.to_csv(index=False).encode("utf-8"),
-                               file_name="quarterly_report.csv", mime="text/csv")
+                            data=qr.to_csv(index=False).encode("utf-8"),
+                            file_name="quarterly_report.csv", mime="text/csv")
 
     # Insights + summary
     payload = build_prompt_payload(df, start, end, fctx, compare_prev=compare_prev)
@@ -274,7 +312,7 @@ def main():
 
     if want_explain:
         txt = explain(rows, kpis, df_current=filtered, df_prev=prev_filtered,
-                      model=model_name, temperature=float(temperature))
+                    model=model_name, temperature=float(temperature))
         st.markdown(txt)
 
     if log_run:
@@ -291,3 +329,8 @@ def main():
     st.caption("Upload CSV/XLSX in the sidebar to analyze your own data.")
 if __name__ == "__main__":
     main()
+
+# ---------- Safe quarterly report wrapper ----------
+
+
+# --- compatibility alias for older call site ---
