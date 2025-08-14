@@ -1,4 +1,4 @@
-# AI KPI Dashboard — Fact-Checked LLM Insights (Offline by default)
+# AI KPI Dashboard — Fact-Checked LLM Insights(lite) (Offline by default)
 
 [![CI](https://github.com/OmniForgeAI/AInsightDashboard/actions/workflows/ci.yml/badge.svg)](https://github.com/OmniForgeAI/AInsightDashboard/actions/workflows/ci.yml)
 
